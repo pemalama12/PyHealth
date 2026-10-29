@@ -211,7 +211,9 @@ class _FieldEmbedding(nn.Module):
             def features(x: torch.Tensor) -> torch.Tensor:
                 # [N, *S] -> [N, *S_kept, prod(S_others)], to project per position.
                 x = x.permute(0, *(1 + a for a in kept), *others)
-                return x.reshape(*x.shape[: 1 + len(kept)], -1)
+                return x.reshape(
+                    *x.shape[: 1 + len(kept)], math.prod(x.shape[1 + len(kept) :])
+                )
 
             x = features(values)
             mask = fields.get((level, "mask"))

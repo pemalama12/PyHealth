@@ -126,6 +126,22 @@ class TestConfiguration(unittest.TestCase):
 
 
 class TestLevels(unittest.TestCase):
+    def test_all_empty_numeric_records(self) -> None:
+        dataset = _dataset(x=([
+            {"ordering": "set", "values": [2, 4], "spatial": [False, True]},
+        ], [{"values": []}, {"values": []}]))
+        for flatten in (True, False):
+            model = SequenceEmbeddingModel(
+                dataset, embedding_dim={"x": [{"values": 3}]},
+                flatten_spatial={"x": [flatten]},
+            )
+            out = model({"x": _batch(dataset, "x")})["x"][0]
+            self.assertEqual(
+                out["embedding"].shape, (0, 3) if flatten else (0, 4, 3)
+            )
+            self.assertEqual(out["offsets"].tolist(), [0, 0, 0])
+            out["embedding"].sum().backward()
+
     def test_level_embeddings_offsets_and_time(self):
         dataset = _dataset(labs=(LABS, LAB_RECORDS))
         model = SequenceEmbeddingModel(dataset, embedding_dim=LAB_DIMS)
