@@ -5,8 +5,8 @@ import torch
 import torch.nn as nn
 
 from pyhealth.datasets import SampleDataset
-from pyhealth.models import BaseModel
 from pyhealth.interpret.api import Interpretable
+from pyhealth.models import BaseModel
 
 from .embedding import EmbeddingModel
 from .logistic_regression import Unified_LogisticRegression
@@ -419,6 +419,17 @@ class Unified_MLP(Unified_LogisticRegression):
     are independent of MLP hidden sizes. Neither static nor sequence fields
     bypass the MLP, so static-only datasets also receive nonlinear modeling
     with the default two layers.
+
+    Examples:
+        >>> from pyhealth.datasets import create_sample_dataset, get_dataloader
+        >>> dataset = create_sample_dataset(
+        ...     [{"patient_id": str(i), "age": [50.0 + i], "y": i}
+        ...      for i in range(2)],
+        ...     {"age": "tensor"}, {"y": "binary"},
+        ... )
+        >>> model = Unified_MLP(dataset, embedding_dim={}, hidden_dim=16)
+        >>> model(**next(iter(get_dataloader(dataset, batch_size=2))))["logit"].shape
+        torch.Size([2, 1])
     """
 
     def __init__(

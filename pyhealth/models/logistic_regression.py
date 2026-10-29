@@ -1,19 +1,21 @@
 from collections.abc import Mapping, Sequence
-from typing import Dict, cast
+from typing import cast
 
 import torch
 import torch.nn as nn
 
 from pyhealth.datasets import SampleDataset
 from pyhealth.models import BaseModel
-
 from pyhealth.processors import SequenceProcessorV2, TensorProcessor
 from pyhealth.processors.sequence_processor_v2 import Resample
 
 from .embedding import EmbeddingModel
 from .rnn import _groups, _pool
 from .sequence_embedding import (
-    LevelEmbedding, MaskMode, PretrainedEmbedding, SequenceEmbeddingModel,
+    LevelEmbedding,
+    MaskMode,
+    PretrainedEmbedding,
+    SequenceEmbeddingModel,
 )
 
 
@@ -122,7 +124,7 @@ class LogisticRegression(BaseModel):
         """
         return x.sum(dim=1) / mask.sum(dim=1, keepdim=True)
 
-    def forward(self, **kwargs) -> Dict[str, torch.Tensor]:
+    def forward(self, **kwargs) -> dict[str, torch.Tensor]:
         """Forward propagation.
 
         Args:
@@ -248,6 +250,17 @@ class Unified_LogisticRegression(BaseModel):
             field, innermost first. Use ``{}`` for static-only datasets.
         mask: ``"ignore"`` or ``"concat"`` for numeric missing indicators.
         pretrain: Pretrained token namespace embeddings.
+
+    Examples:
+        >>> from pyhealth.datasets import create_sample_dataset, get_dataloader
+        >>> dataset = create_sample_dataset(
+        ...     [{"patient_id": str(i), "age": [50.0 + i], "y": i}
+        ...      for i in range(2)],
+        ...     {"age": "tensor"}, {"y": "binary"},
+        ... )
+        >>> model = Unified_LogisticRegression(dataset, embedding_dim={})
+        >>> model(**next(iter(get_dataloader(dataset, batch_size=2))))["logit"].shape
+        torch.Size([2, 1])
     """
 
     def __init__(
